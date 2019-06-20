@@ -1,0 +1,52 @@
+service: Developer-Tools-Notification
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: ap-northeast-1
+  logRetentionInDays: 7
+  stage: ${env:STAGE, 'dev'}
+  iamRoleStatements:
+    -  Effect: "Allow"
+       Action:
+         - "lambda:InvokeFunction"
+         - codecommit:Get*
+       Resource: "*"
+  environment:
+    dry_run: ${env:DRY_RUN}
+    STAGE: ${env:STAGE}
+    SLACK_TOKEN: ${env:SLACK_TOKEN}
+    SLACK_CHANNEL: ${env:SLACK_CHANNEL}
+    SLACK_MENTION_MEMBERS: ${env:SLACK_MENTION_MEMBERS}
+
+plugins:
+  - serverless-python-requirements
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    usePipenv: false
+
+functions:
+  codecommit_notification:
+    handler: codecommit_notification.lambda_handler
+    memorySize: 128
+    timeout: 60
+    events:
+      - cloudwatchEvent:
+          event:
+            source:
+              - "aws.codecommit"
+            detail-type:
+              - "CodeCommit Pull Request State Change"
+              - "CodeCommit Comment on Pull Request"
+              - "CodeCommit Comment on Commit"
+          enabled: true
+
+package:
+  exclude:
+    - __pycache__
+    - .git/**
+    - node_modules
+    - node_modules/**
+    - README.md
+    - shell
