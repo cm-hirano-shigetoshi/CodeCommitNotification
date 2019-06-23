@@ -1,7 +1,6 @@
 #!/bin/bash -eu
-export AWS_PROFILE="aiueo"
-export SLACK_TOKEN="abcd-0000000000-000000000000-abcdefg123456789abcdefgh"
-export SLACK_CHANNEL="#test-slack-channel"
+export AWS_PROFILE="default"
+export SLACK_HOOK_URL="https://hooks.slack.com/services/ABC123ABC/XYZ987XYZ/ABCDEFG1234567HIJKLMNOPQ"
 export SLACK_MENTION_MEMBERS="ABCDEF123,ABCDEF456"
 
 export AWS_SDK_LOAD_CONFIG=true
@@ -12,3 +11,4 @@ unset STAGE
 unset AWS_PROFILE
 unset SLACK_TOKEN
 unset SLACK_CHANNEL
+

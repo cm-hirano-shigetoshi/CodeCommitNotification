@@ -81,14 +81,14 @@ def lambda_handler(event, context):
         text = "```{}```".format(
             get_comment_content(event['detail']['commentId']))
 
-    attachments_json = [{
+    attachments_json = {
+        "pretext": message,
         "title": title,
         "title_link": title_link,
         "color": color,
         "text": text
-    }]
-    event = {'message': message, 'attachments': attachments_json}
-    push_slack.send_to_slack(event)
+    }
+    push_slack.send_to_slack(**attachments_json)
 
 
 def get_pull_request_title(request_id):

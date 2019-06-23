@@ -15,8 +15,7 @@ provider:
   environment:
     dry_run: ${env:DRY_RUN}
     STAGE: ${env:STAGE}
-    SLACK_TOKEN: ${env:SLACK_TOKEN}
-    SLACK_CHANNEL: ${env:SLACK_CHANNEL}
+    SLACK_HOOK_URL: ${env:SLACK_HOOK_URL}
     SLACK_MENTION_MEMBERS: ${env:SLACK_MENTION_MEMBERS}
 
 plugins:

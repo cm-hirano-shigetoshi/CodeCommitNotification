@@ -1,34 +1,26 @@
-from slackclient import SlackClient
 import os
+import json
 import distutils.util
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
 
 # Slack
-slack_client = None
-slack_token = os.environ["SLACK_TOKEN"]
-slack_channel = os.getenv('SLACK_CHANNEL', "#build_information")
+SLACK_HOOK_URL = os.environ['SLACK_HOOK_URL']
 
 # dryrun
 dry_run = bool(distutils.util.strtobool(os.getenv("dry_run", "False")))
 
 
-def send_to_slack(event):
-    global slack_client
-    global dry_run
-    if not slack_client:
-        slack_client = SlackClient(slack_token)
-    if "message" in event:
-        message = event['message']
-    else:
-        message = None
-    if "attachments" in event:
-        attachments = event['attachments']
-    else:
-        attachment = None
+def send_to_slack(**attachments):
+    payload = {"attachments": [attachments]}
+    data = "payload=" + json.dumps(payload)
     if not dry_run:
-        if message or attachment:
-            slack_client.api_call(
-                "chat.postMessage",
-                channel=slack_channel,
-                attachments=attachments,
-                text=message)
-
+        req = Request(SLACK_HOOK_URL, data=data.encode("utf-8"), method="POST")
+        try:
+            response = urlopen(req)
+            response.read()
+            print("Message posted to %s", SLACK_HOOK_URL)
+        except HTTPError as e:
+            print("Request failed: %d %s", e.code, e.reason)
+        except URLError as e:
+            print("Server connection failed: %s", e.reason)
