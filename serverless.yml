@@ -18,8 +18,6 @@ provider:
     SLACK_HOOK_URL: ${env:SLACK_HOOK_URL}
     SLACK_MENTION_MEMBERS: ${env:SLACK_MENTION_MEMBERS}
 
-plugins:
-  - serverless-python-requirements
 custom:
   pythonRequirements:
     dockerizePip: true
