@@ -22,7 +22,7 @@ def lambda_handler(event, context):
             mention = " ".join(
                 ["<@" + u + ">" for u in mention_members.split(",")])
             message = "{} {}がプルリクエストを作成しました".format(
-                mention, event['detail']['author'].split(":")[1])
+                mention, event['detail']['callerUserArn'].split("/")[1])
             color = "#439FE0"
             if "description" in event['detail']:
                 text = "```{}```".format(event['detail']['description'])
@@ -30,17 +30,17 @@ def lambda_handler(event, context):
             if event['detail']['isMerged'] == "False":
                 # プルリクエストクローズ（CodeCommitとしてのマージではない終了）
                 message = "{}がプルリクエストをクローズしました".format(
-                    event['detail']['author'].split(":")[1])
+                    event['detail']['callerUserArn'].split("/")[1])
                 color = "#439FE0"
             else:
                 # プルリクエストがマージされた
                 message = "{}がプルリクエストをマージしました".format(
-                    event['detail']['author'].split(":")[1])
+                    event['detail']['callerUserArn'].split("/")[1])
                 color = "good"
         else:
             # プルリクエスト更新
             message = "{}がプルリクエストを更新しました".format(
-                event['detail']['author'].split(":")[1])
+                event['detail']['callerUserArn'].split("/")[1])
             color = "#439FE0"
         title = "[{}] {}".format(repository_name, event['detail']['title'])
         pos = notification_body.find("https://")
