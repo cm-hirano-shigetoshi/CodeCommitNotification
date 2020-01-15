@@ -40,6 +40,14 @@ def lambda_handler(event, context):
                 # プルリクエストがマージされた
                 message = "{}がプルリクエストをマージしました".format(user_name)
                 color = "good"
+        elif event['detail']['event'] == 'pullRequestApprovalStateChanged':
+            if event['detail']['approvalStatus'] == 'APPROVE':
+                # プルリクエストを承認した
+                message = "{}がプルリクエストを承認しました".format(user_name)
+                color = "good"
+            else:
+                message = "{}がプルリクエスト承認に変更を行いました".format(user_name)
+                color = "#439FE0"
         else:
             # プルリクエスト更新
             message = "{}がプルリクエストを更新しました".format(user_name)
