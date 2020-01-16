@@ -12,6 +12,12 @@ def lambda_handler(event, context):
         lambda_client = boto3.client('lambda')
 
     notification_body = event['detail']['notificationBody']
+    if 'callerUserArn' in event['detail']:
+        user_name = event['detail']['callerUserArn'].split("/")[-1]
+    elif ':' in event['detail']['author']:
+        user_name = event['detail']['author'].split(":")[-1]
+    else:
+        user_name = 'unknown user'
 
     if event['detail-type'] == "CodeCommit Pull Request State Change":
         repository_name = event['detail']['repositoryNames'][0]
@@ -21,26 +27,30 @@ def lambda_handler(event, context):
             mention_members = os.environ.get("SLACK_MENTION_MEMBERS", "")
             mention = " ".join(
                 ["<@" + u + ">" for u in mention_members.split(",")])
-            message = "{} {}がプルリクエストを作成しました".format(
-                mention, event['detail']['callerUserArn'].split("/")[1])
+            message = "{} {}がプルリクエストを作成しました".format(mention, user_name)
             color = "#439FE0"
             if "description" in event['detail']:
                 text = "```{}```".format(event['detail']['description'])
         elif event['detail']['pullRequestStatus'] == "Closed":
             if event['detail']['isMerged'] == "False":
                 # プルリクエストクローズ（CodeCommitとしてのマージではない終了）
-                message = "{}がプルリクエストをクローズしました".format(
-                    event['detail']['callerUserArn'].split("/")[1])
+                message = "{}がプルリクエストをクローズしました".format(user_name)
                 color = "#439FE0"
             else:
                 # プルリクエストがマージされた
-                message = "{}がプルリクエストをマージしました".format(
-                    event['detail']['callerUserArn'].split("/")[1])
+                message = "{}がプルリクエストをマージしました".format(user_name)
                 color = "good"
+        elif event['detail']['event'] == 'pullRequestApprovalStateChanged':
+            if event['detail']['approvalStatus'] == 'APPROVE':
+                # プルリクエストを承認した
+                message = "{}がプルリクエストを承認しました".format(user_name)
+                color = "good"
+            else:
+                message = "{}がプルリクエスト承認に変更を行いました".format(user_name)
+                color = "#439FE0"
         else:
             # プルリクエスト更新
-            message = "{}がプルリクエストを更新しました".format(
-                event['detail']['callerUserArn'].split("/")[1])
+            message = "{}がプルリクエストを更新しました".format(user_name)
             color = "#439FE0"
         title = "[{}] {}".format(repository_name, event['detail']['title'])
         pos = notification_body.find("https://")
@@ -55,8 +65,7 @@ def lambda_handler(event, context):
         request_title = get_pull_request_title(request_id)
         file_name, content = get_pull_request_comment_info(
             request_id, event['detail']['commentId'])
-        message = "{}がプルリクエストにコメントしました".format(
-            event['detail']['callerUserArn'].split("/")[1])
+        message = "{}がプルリクエストにコメントしました".format(user_name)
         title = "[{}] {}".format(repository_name, request_title)
         pos = notification_body.find("https://")
         if pos >= 0:
@@ -68,8 +77,7 @@ def lambda_handler(event, context):
     elif event['detail-type'] == "CodeCommit Comment on Commit":
         # コミットへのコメント
         repository_name = event['detail']['repositoryName']
-        message = "{}がコミットにコメントしました".format(
-            event['detail']['callerUserArn'].split("/")[1])
+        message = "{}がコミットにコメントしました".format(user_name)
         title = "[{}] {}".format(repository_name,
                                  event['detail']['afterCommitId'])
         pos = notification_body.find("https://")
